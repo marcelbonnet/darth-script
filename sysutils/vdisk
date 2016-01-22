@@ -1,0 +1,107 @@
+#!/usr/local/bin/bash
+# Copyright (c) 2016, Marcel Bonnet
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# 
+# * Redistributions of source code must retain the above copyright notice, this
+#   list of conditions and the following disclaimer.
+# 
+# * Redistributions in binary form must reproduce the above copyright notice,
+#   this list of conditions and the following disclaimer in the documentation
+#   and/or other materials provided with the distribution.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+# AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+# SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
+# OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE
+# 2016-01-20
+# marcelbonnet
+# Encrypted virtual disk tool for FreeBSD
+# @see https://forums.freebsd.org/threads/howto-encrypting-virtual-disks.20382/
+# @see https://www.freebsd.org/doc/handbook/disks-encrypting.html
+
+function createImage(){
+   bs=4	 #k Bytes
+   image=$1
+   count=$(echo $2 \* 1024 / $bs | bc )  #param is entered by user in Mega bytes
+   dd if=/dev/zero of=$image bs=${bs}k count=${count}
+
+   md=$(mdconfig $image)
+   dd if=/dev/random of=/root/`basename $image`.key bs=64 count=1
+   geli init -s 4096 -K /root/`basename $image`.key /dev/$md
+   geli attach -k /root/`basename $image`.key /dev/$md
+   newfs /dev/${md}.eli
+   echo "The encrypted virtual disk is done."
+}
+
+function mountImage(){
+   image=$1
+   mnt=$2   #mount point
+
+   [[ ! -e $image ]]    && echo "Missing image file." && exit 127;
+   [[ ! -e $mnt ]]   && echo "Missing mount point." && exit 127;
+   
+   md=$(mdconfig $image)
+   geli attach -k /root/`basename $image`.key /dev/$md
+   mount /dev/${md}.eli $mnt
+}
+
+function umountImage(){
+   mnt=$1
+   gelidev=$(mount | grep $mnt | cut -d' ' -f1)
+   mdnum=$(echo $gelidev | grep -Eo "[0-9]")
+   umount $mnt
+   geli detach $gelidev
+   mdconfig -d -u $mdnum
+}
+
+
+function checkid(){
+   [[ `id -u` -ne 0 ]] && echo "Must run as root." && exit 127;
+}
+
+function usage(){
+   cmd=`basename $0`
+   printf "\t$cmd is a utility to create, mount and unmount encrypted virtual \n\t disks in FreeBSD.\n\tUsage:\n";
+   printf "\t$cmd -c imageFile sizeInMegaBytes \n";
+   printf "\t\t Creates a new UFS encrypted virtual disk for the image file with\n\t\t the given size.\n";
+   printf "\t\t The new key file is stored as /root/[basename of imageFile].key .\n";
+   printf "\t$cmd -m imageFile mountPoint \n";
+   printf "\t\t Mounts the given image file at the mount point node. You'll be \n\t\t asked by the passphrase for the encrypted disk.\n";
+   printf "\t$cmd -u mountPoint \n";
+   printf "\t\t Unmounts the given mount point.\n";
+}
+
+
+# Opções de linha de comando
+while [ "${1#-}" != "$1" ]
+do
+        case "$1" in
+                -c) shift;
+			checkid
+                        createImage $1 $2
+                        exit 0
+                        ;;
+                -m) shift;
+			checkid
+                        mountImage $1 $2
+                        exit 0
+                        ;;
+                -u) shift;
+			checkid
+                        umountImage $1
+                        exit 0
+                        ;;
+                -h) usage;        exit 0;;
+                *)  usage; break       ;;
+        esac
+ shift
+done
