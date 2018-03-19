@@ -13,14 +13,17 @@ ratio=$1; shift;
 
 [[ ! $1 ]] && usage;
 
+
+[[ ! ${ratio/./,} -gt 0 ]] && printf "\tThe first argument must be the ratio to resize the images, between 0.1 and 1 .\n" && exit 1 ;
+
 center=0   # Start position of the center of the first image.
 
-  for image in $@ 
+  for image in "$@"
   do
 
     w=`convert ${image} -format "%w" info:`
 	center=`echo \(${w}\*${ratio}/2\)+${center} | bc`
-	echo $center >&2
+	#echo $center >&2
     # read image, add fluff, and using centered padding/trim locate the
     # center of the image at the next location (relative to the last).
     #
