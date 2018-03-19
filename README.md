@@ -7,7 +7,7 @@ Scripts. Bash, sh, PHP, ... whatever language. Some focused on FreeBSD. Many bas
 
 polaroid.sh		Combine photos, side by side using the ImageMagick polaroid effect. Based on ImageMagick example script.
 
-	Example image: ![polaroid composite example](graphics/polaroids.jpg)
+Example image: ![polaroid composite example](graphics/polaroids.jpg)
 
 
 ## sysutils/
