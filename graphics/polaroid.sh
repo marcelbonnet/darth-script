@@ -18,10 +18,10 @@ ratio=$1; shift;
 
 center=0   # Start position of the center of the first image.
 
-  for image in "$@"
+  for image in $@ 
   do
 
-    w=`convert ${image} -format "%w" info:`
+    w=`convert "${image}" -format "%w" info:`
 	center=`echo \(${w}\*${ratio}/2\)+${center} | bc`
 	#echo $center >&2
     # read image, add fluff, and using centered padding/trim locate the
