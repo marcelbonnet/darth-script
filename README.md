@@ -1,2 +1,17 @@
 # darth-script
-Bash, sh, php, perl, whatever lang scripts. Some focused on FreeBSD.
+Scripts. Bash, sh, PHP, ... whatever language. Some focused on FreeBSD. Many based on other's scripts.
+
+# Utilities
+
+## graphics/
+
+polaroid.sh		Combine photos, side by side using the ImageMagick polaroid effect. Based on ImageMagick example script.
+
+
+## sysutils/
+
+vdisk			Mount, unmount and create encrypted disk image to be used as a virtual disk using md (FreeBSD).
+
+## www/
+
+apache-sites	to deploy/undeploy my Directories and Virtual Hosts
