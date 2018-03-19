@@ -5,24 +5,19 @@
 # Polaroid effect image composition.
 
 function usage(){
-	printf "Usage:\n\t%s [0.1<=ratio<=1.0] [images]\n"
+	printf "Usage:\n\t%s [0.1<=ratio<=1.0] [images]\nThe result is persisted in /tmp.\n"
 	exit 1
 }
 
-#ratio=0.3
 ratio=$1; shift;
 
 [[ ! $1 ]] && usage;
 
 center=0   # Start position of the center of the first image.
-             # This can be ANYTHING, as only relative changes are important.
 
   for image in $@ 
   do
 
-    # Add 70 to the previous images relative offset to add to each image
-    #
-    #center=`convert xc: -format "%[fx: $center +70 ]" info:`
     w=`convert ${image} -format "%w" info:`
 	center=`echo \(${w}\*${ratio}/2\)+${center} | bc`
 	echo $center >&2
