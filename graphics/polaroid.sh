@@ -37,4 +37,4 @@ center=0   # Start position of the center of the first image.
   done |
     # read pipeline of positioned images, and merge together
     convert -background "#333"   MIFF:-  -layers merge +repage \
-            -bordercolor black -border 3x3   /tmp/overlapped_polaroids.jpg
+            -bordercolor black -border 3x3   /tmp/overlapped_polaroids_$$.jpg
