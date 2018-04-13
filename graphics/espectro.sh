@@ -3,7 +3,7 @@
 #convert espectro.png -fill red -draw "line 100,280 100,339 line 200,280, 200,339" -annotate +0+100 "200" -annotate +50+120 "220"  to.png
 
 function usage(){
-	printf "%s [freq ini] [bw MHz] [imagem] [saída: nome.extensao] [resize]\n" `basename $0`
+	printf "%s [freq ini] [bw kHz] [imagem] [saída: nome.extensao] [resize]\n" `basename $0`
 	exit 1
 }
 
@@ -31,11 +31,12 @@ for((x=0;x<=$w;x=x+$salto)); do
 	# label
 	fi=$(echo "scale=3; $freqi + $pxfreq * $x  " | bc)
 	# index de cor
-	corindex=`expr $corindex + 1`
 	[[ $corindex -gt  ${#cores} ]] && corindex=0
 	cor=${cores[$corindex]}
+	corindex=`expr $corindex + 1`
 	# desenho e labels:
-	opts="$opts -fill \"$cor\" -draw \"line $x,$hi $x,$h \" -annotate +${x}+${yi} \"$fi\" "
+	h2=`expr $hi + $corindex \* 24`
+	opts="$opts -fill \"$cor\" -draw \"stroke-opacity 0.0 path 'M $x,$h2 L $x,$h' \" -annotate +${x}+${yi} \"$fi\" "
 done
 
 eval convert $img $opts $saida
